@@ -19,7 +19,8 @@ public with sharing class ContactManagerTest {
         RestRequest request = new RestRequest();
         request.requestUri =
             'https://yourInstance.my.salesforce.com/services/apexrest/Contacts/';
-        request.requestbody = Blob.valueof('{"lastName" : "Test" , "email" : "testcreatecontact@test.org"}');
+        request.httpMethod = 'POST';
+            request.requestbody = Blob.valueof('{"lastName" : "Test" , "email" : "testcreatecontact@test.org"}');
         RestContext.request = request;
         // Call the method to test
         ID thisContactId = ContactManager.createContact();
@@ -36,13 +37,14 @@ public with sharing class ContactManagerTest {
         request.requestUri =
             'https://yourInstance.my.salesforce.com/services/apexrest/Contacts/'+ct.Id;
         request.httpMethod = 'PATCH';
+        request.requestbody = Blob.valueof('{"firstName" : "Contact"}');
         RestContext.request = request;
         // Call the method to test
-        ContactManager.deleteContact();
+        ContactManager.updateContactFields();
         // Verify results
-        List<Contact> contacts = [SELECT Id, Actif__c FROM Contact WHERE Id=:ct.Id];
+        List<Contact> contacts = [SELECT Id, firstName FROM Contact WHERE Id=:ct.Id];
         System.assert(contacts.size() == 1,'Le contact doit être présent');
-        System.assertEquals(false, contacts[0].Actif__c,'Le contact doit être désactivé');
+        System.assertEquals('Contact', contacts[0].firstName,'Le prénom devrait être modifié');
     }
 
     @isTest static void testDeleteContact() {
@@ -57,7 +59,7 @@ public with sharing class ContactManagerTest {
         ContactManager.deleteContact();
         // Verify results
         List<Contact> contacts = [SELECT Id, Actif__c FROM Contact WHERE Id=:ct.Id];
-        System.assert(contacts.size() == 1,'Le contact doit avoir été trouvé');
+        System.assert(contacts.size() == 1,'Le contact doit être présent');
         System.assertEquals(false, contacts[0].Actif__c,'Le contact doit être désactivé');
     }
 
