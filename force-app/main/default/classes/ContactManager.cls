@@ -36,18 +36,18 @@ global  with sharing class ContactManager {
         RestResponse response = RestContext.response;
         String contactId = request.requestURI.substring(
             request.requestURI.lastIndexOf('/')+1);
-        List<Contact> thisContact = [SELECT Id FROM Contact WHERE Id = :contactId];
-        if (thisContact.size()> 0) {
+        try {
+            Contact thisContact = [SELECT Id FROM Contact WHERE Id = :contactId AND Actif__c = true];
             // Deserialize the JSON string into name-value pairs
             Map<String, Object> params = (Map<String, Object>)JSON.deserializeUntyped(request.requestbody.tostring());
             // Iterate through each parameter field and value
             for(String fieldName : params.keySet()) {
                 // Set the field and value on the Case sObject
-                thisContact[0].put(fieldName, params.get(fieldName));
+                thisContact.put(fieldName, params.get(fieldName));
             }
-            update thisContact[0];
-            return thisContact[0].Id;
-        } else {
+            update thisContact;
+            return thisContact.Id;
+        } catch (System.QueryException e) {
             response.statusCode = 404;
             return null;
         }
@@ -56,11 +56,16 @@ global  with sharing class ContactManager {
     @HttpDelete
     global static void deleteContact() {
         RestRequest request = RestContext.request;
+        RestResponse response = RestContext.response;
         String contactId = request.requestURI.substring(
             request.requestURI.lastIndexOf('/')+1);
-        Contact thisContact = [SELECT Id, Actif__c FROM Contact WHERE Id = :contactId];
-        thisContact.Actif__c = false;
-        update thisContact;
+        try {
+            Contact thisContact = [SELECT Id, Actif__c FROM Contact WHERE Id = :contactId];
+            thisContact.Actif__c = false;
+            update thisContact;
+        } catch (System.QueryException e) {
+            response.statusCode = 404;
+        }
     }     
 
 }
