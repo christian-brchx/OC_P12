@@ -8,6 +8,9 @@ global  with sharing class ContactManager {
         if (request.params.containsKey('email')) {
             String email = request.params.get('email');
             result =  [SELECT Id,Email FROM Contact WHERE Email = :email AND Actif__c = true];
+            if (result.size() == 0) {
+                response.statusCode = 404;
+            }
         } else {
             response.statusCode = 400;
         }
